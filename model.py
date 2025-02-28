@@ -18,6 +18,12 @@ def allocate(line: OrderLine, batches: List[Batch]) -> str:
         raise OutOfStock(f"Out of stock for sku {line.sku}")
 
 
+def deallocate(orderid: str, sku: str, batches: List[Batch]) -> None:
+    batch = next(b for b in batches if b.sku == sku)
+    orderline = next(o for o in batch._allocations if o.orderid == orderid)
+    batch.deallocate(orderline)
+
+
 @dataclass(unsafe_hash=True)
 class OrderLine:
     orderid: str
