@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date
+
 import model
 from model import OrderLine
 from repository import AbstractRepository
@@ -14,7 +16,7 @@ def is_valid_sku(sku, batches):
 
 
 def allocate(line: OrderLine, repo: AbstractRepository, session) -> str:
-    batches = repo.list()
+    batches = repo.list()  # type: ignore
     if not is_valid_sku(line.sku, batches):
         raise InvalidSku(f"Invalid sku {line.sku}")
     batchref = model.allocate(line, batches)
