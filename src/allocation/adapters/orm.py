@@ -1,3 +1,5 @@
+from enum import unique
+
 from sqlalchemy import Column, Date, ForeignKey, Integer, MetaData, String, Table
 from sqlalchemy.orm import mapper, relationship
 
@@ -37,7 +39,7 @@ products = Table(
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("sku", String(255), unique=True, nullable=False),
-    Column("version_number", Integer),
+    Column("version_number", Integer, nullable=False, server_default="0"),
 )
 
 
