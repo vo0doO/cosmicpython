@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 from allocation.adapters import email, redis_eventpublisher
 from allocation.domain import commands, events, model
-from allocation.domain.model import OrderLine
+from allocation.domain.model import OrderLine, Product
 
 if TYPE_CHECKING:
     from . import unit_of_work
@@ -31,7 +33,7 @@ def allocate(
 ) -> str:
     line = OrderLine(cmd.orderid, cmd.sku, cmd.qty)
     with uow:
-        product = uow.products.get(sku=line.sku)
+        product: Product = uow.products.get(sku=line.sku)
         if product is None:
             raise InvalidSku(f"Invalid sku {line.sku}")
         batchref = product.allocate(line)

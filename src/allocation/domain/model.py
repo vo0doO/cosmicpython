@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import date
-from typing import Optional, List, Set
+from typing import List, Optional, Set, Union
+
 from . import commands, events
 
 
@@ -10,7 +12,7 @@ class Product:
         self.sku = sku
         self.batches = batches
         self.version_number = version_number
-        self.events = []  # type: List[events.Event]
+        self.events: List[events.Event | commands.Command] = []
 
     def allocate(self, line: OrderLine) -> str:
         try:
