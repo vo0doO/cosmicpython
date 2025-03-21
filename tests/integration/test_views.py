@@ -1,4 +1,5 @@
 from datetime import date
+
 from allocation import views
 from allocation.domain import commands
 from allocation.service_layer import messagebus, unit_of_work
@@ -33,3 +34,19 @@ def test_deallocation(sqlite_session_factory):
     assert views.allocations("o1", uow) == [
         {"sku": "sku1", "batchref": "b2"},
     ]
+
+
+def test_orders_view(sqlite_session_factory):
+    uow = unit_of_work.SqlAlchemyUnitOfWork(sqlite_session_factory)
+    messagebus.handle(commands.CreateBatch("b", "sku", 10, None), uow)
+    messagebus.handle(commands.Allocate("o", "sku", 10), uow)
+
+    assert views.orders("o", uow) == {"orderid": "o", "sku": "sku", "qty": 10}
+
+
+def test_orders_view_returned_none_value_if_cant_found_order(sqlite_session_factory):
+    uow = unit_of_work.SqlAlchemyUnitOfWork(sqlite_session_factory)
+    messagebus.handle(commands.CreateBatch("b", "sku", 10, None), uow)
+    messagebus.handle(commands.Allocate("o", "sku", 10), uow)
+
+    assert not views.orders("not found", uow)

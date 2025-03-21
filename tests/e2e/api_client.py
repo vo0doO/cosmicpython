@@ -1,4 +1,5 @@
 import requests
+
 from allocation import config
 
 
@@ -28,3 +29,8 @@ def post_to_allocate(orderid, sku, qty, expect_success=True):
 def get_allocation(orderid):
     url = config.get_api_url()
     return requests.get(f"{url}/allocations/{orderid}")
+
+
+def get_order(orderid):
+    url = config.get_api_url()
+    return requests.get(f"{url}/orders/{orderid}")

@@ -1,4 +1,5 @@
 import pytest
+
 from ..random_refs import random_batchref, random_orderid, random_sku
 from . import api_client
 
@@ -29,11 +30,37 @@ def test_happy_path_returns_202_and_batch_is_allocated():
 @pytest.mark.usefixtures("restart_api")
 def test_unhappy_path_returns_400_and_error_message():
     unknown_sku, orderid = random_sku(), random_orderid()
-    r = api_client.post_to_allocate(
-        orderid, unknown_sku, qty=20, expect_success=False
-    )
+    r = api_client.post_to_allocate(orderid, unknown_sku, qty=20, expect_success=False)
     assert r.status_code == 400
     assert r.json()["message"] == f"Invalid sku {unknown_sku}"
 
     r = api_client.get_allocation(orderid)
+    assert r.status_code == 404
+
+
+@pytest.mark.usefixtures("postgres_db")
+@pytest.mark.usefixtures("restart_api")
+def test_happy_path_returns_202_and_order_is_allocated():
+    orderid = random_orderid()
+    sku = random_sku()
+    earlybatch = random_batchref(1)
+    api_client.post_to_add_batch(earlybatch, sku, 100, None)
+
+    r = api_client.post_to_allocate(orderid, sku, qty=3)
+    assert r.status_code == 202
+
+    r = api_client.get_order(orderid)
+    assert r.ok
+    assert r.json() == {"orderid": orderid, "sku": sku, "qty": 3}
+
+
+@pytest.mark.usefixtures("postgres_db")
+@pytest.mark.usefixtures("restart_api")
+def test_unhappy_path_returns_400_and_error_message_if_order_is_not_allocated():
+    unknown_sku, orderid = random_sku(), random_orderid()
+    r = api_client.post_to_allocate(orderid, unknown_sku, qty=20, expect_success=False)
+    assert r.status_code == 400
+    assert r.json()["message"] == f"Invalid sku {unknown_sku}"
+
+    r = api_client.get_order(orderid)
     assert r.status_code == 404

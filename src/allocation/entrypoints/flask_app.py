@@ -1,11 +1,12 @@
 from datetime import datetime
+
 from flask import Flask, jsonify, request
 
-from allocation.domain import commands
+from allocation import views
 from allocation.adapters import orm
+from allocation.domain import commands
 from allocation.service_layer import messagebus, unit_of_work
 from allocation.service_layer.handlers import InvalidSku
-from allocation import views
 
 app = Flask(__name__)
 orm.start_mappers()
@@ -42,6 +43,15 @@ def allocate_endpoint():
 def allocations_view_endpoint(orderid):
     uow = unit_of_work.SqlAlchemyUnitOfWork()
     result = views.allocations(orderid, uow)
+    if not result:
+        return "not found", 404
+    return jsonify(result), 200
+
+
+@app.route("/orders/<orderid>", methods=["GET"])
+def orders_view_endpoint(orderid):
+    uow = unit_of_work.SqlAlchemyUnitOfWork()
+    result = views.orders(orderid, uow)
     if not result:
         return "not found", 404
     return jsonify(result), 200
